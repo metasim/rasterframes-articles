@@ -63,12 +63,16 @@ support for the evolving [Spatiotemporal Asset Catalog (STAC)][STAC].
 
 The following example will show some of the general operations available in
 RasterFrames. In it we will be using the [_MODIS Nadir BRDF-Adjusted Surface
-Reflectance Data Product_][NBAR] from NASA, which is directly available in [Amazon
-Web Services (AWS) Public Data Set (PDS)][PDS]. We will be using the RasterFrames
-MODIS catalog data source, and SQL as our language (as noted above, Python,
-Java, and Scala are also options). 
+Reflectance Data Product_][NBAR] from NASA, which is directly available in
+[Amazon Web Services (AWS) Public Data Set (PDS)][PDS]. We will be using the
+RasterFrames MODIS catalog data source, and SQL as our language (as noted above,
+Python, Java, and Scala are also options). We will compute the monthly global
+average of a [vegetation index][NDVI] in 2017 and see how it varies.
 
-The first step is to load our MODIS catalog data source into a table:
+> **Note**: RasterFrames version 0.8.0-RC1 was used in this example.
+
+The first step is to load our MODIS catalog data source into a table and see
+what it provides:
 
 ```sql
 CREATE TEMPORARY VIEW modis USING `aws-pds-modis`;
@@ -85,8 +89,8 @@ DESCRIBE modis;
 ```
 
 The `assets` column contains a dictionary mapping between band names and a URI
-pointing to the GeoTIFF. The next statemnt shows us what bands are available in
-the catalog:
+pointing to the GeoTIFF. To determine what bands are available in catalog we can
+execute the following:
 
 ```sql
 SELECT DISTINCT explode(map_keys(assets)) as asset_keys
@@ -143,10 +147,38 @@ SELECT month, ndvi_stats.* FROM (
     GROUP BY month
     ORDER BY month
 )
+-- +-----+---------+-----------+----+---+-------------------+-------------------+
+-- |month|dataCells|noDataCells|min |max|mean               |variance           |
+-- +-----+---------+-----------+----+---+-------------------+-------------------+
+-- |1    |530105436|1261254564 |-1.0|1.0|0.2183160845625243 |0.12890947667168529|
+-- |2    |600524070|1213875930 |-1.0|1.0|0.19716944997032773|0.12721311415470044|
+-- |3    |615820993|1198579007 |-1.0|1.0|0.20199490649244112|0.12937148422536485|
+-- |4    |629659958|1138660042 |-1.0|1.0|0.24221570883272578|0.13896602048542867|
+-- |5    |635920714|1074799286 |-1.0|1.0|0.2949905328774185 |0.15610215565162433|
+-- |6    |617826616|1092893384 |-1.0|1.0|0.3430829566130305 |0.1768520590388395 |
+-- |7    |604436464|1106283536 |-1.0|1.0|0.37280247950373924|0.19128743861294956|
+-- |8    |598500660|1169819340 |-1.0|1.0|0.3620362092401007 |0.19355049617163744|
+-- |9    |623849120|1190550880 |-1.0|1.0|0.30889448330373964|0.1727205792001795 |
+-- |10   |613413505|1200986495 |-1.0|1.0|0.2771316767269186 |0.15228789046594618|
+-- |11   |546679019|1244680981 |-1.0|1.0|0.2510236308996954 |0.1348450714383397 |
+-- |12   |520511978|1201728022 |-1.0|1.0|0.237714687195611  |0.13236712076432644|
+-- +-----+---------+-----------+----+---+-------------------+-------------------+
 ```
 
+And here's what when get when we plot the mean value:
+
+![Global Average NDVI 2017](ndvi-2017.png)
 
 ## Scalability
+
+This same job was run using multiple cluster sizes. Each custer node was an AWS
+`m4.large` configuration, which is composed of 8 virtual cores, 30.5 GiB RAM,
+and 80GB of storage.
+
+Nodes | Cores | Memory (GB) | Execution Time (min)
+----- | ----- | ----------- | --------------------
+2     | 16    | 61          | 53
+8     | 64    | 244         | 22
 
 
 ## Conclusion
