@@ -58,20 +58,96 @@ support for the evolving [Spatiotemporal Asset Catalog (STAC)][STAC].
 
 ## Example Use Case
 
-A common EO operation is to compute a vegetative index, with NDVI being the most
-common. In this case we're going to be a little more sophisticated and compute
-EVI2, as described in the [_MODIS VI Users Guide_][MODIS]:
-
-![EVI2](evi2.png)
+In the following example we will attempt to provide a taste of the ...
 
 In this example we will be using the [_MODIS Nadir BRDF-Adjusted Surface
 Reflectance Data Product_][NBAR], which is directly available in [Amazon
 Web Services (AWS) Public Data Set (PDS)][PDS]. We will be using the RasterFrames
-MODIS catalog data source.
+MODIS catalog data source, and SQL as our language (as noted above, Python,
+Java, and Scala are also options). 
+
+The first step is to load our MODIS catalog data source into a table:
+
+```sql
+CREATE TEMPORARY VIEW modis USING `aws-pds-modis`;
+DESCRIBE modis;
+-- +----------------+------------------+
+-- |col_name        |data_type         |
+-- +----------------+------------------+
+-- |product_id      |string            |
+-- |acquisition_date|timestamp         |
+-- |granule_id      |string            |
+-- |gid             |string            |
+-- |assets          |map<string,string>|
+-- +----------------+------------------+
+```
+
+Next, we'll read in the red and NIR bands, globally, for a single day:
+
+```sql
+CREATE TEMPORARY VIEW red_nir_tiles AS
+SELECT granule_id, rf_read_tiles(assets['B01'], assets['B02']) as (crs, extent, red, nir)
+FROM modis
+WHERE acquisition_date = to_timestamp('2013-01-04');
+DESCRIBE red_nir_tiles;
+-- +----------+-------------------------------------------------------+
+-- |col_name  |data_type                                              |
+-- +----------+-------------------------------------------------------+
+-- |granule_id|string                                                 |
+-- |crs       |struct<crsProj4:string>                                |
+-- |extent    |struct<xmin:double,ymin:double,xmax:double,ymax:double>|
+-- |red       |tile                                                   |
+-- |nir       |tile                                                   |
+-- +----------+-------------------------------------------------------+
+```
+
+
+Computing the [normalized difference vegetation index][NDVI] (NDVI) is a very
+common operation in EO analysis, and is composed simply as the normalized
+difference of the Red and NIR bands from a surface reflectance data product.
+
+<!-- \text{NDVI} = \frac{\text{NIR} - \text{Red}}{\text{NIR} + \text{Red}} -->
+![NDVI](ndvi.png)
+
+Since a  normalized difference is a such common operation in EO analysis, RasterFrames
+includes a single function for computing it:
+
+```sql
+CREATE TEMPORARY VIEW ndvi AS
+SELECT rf_normalizedDifference(nir, red) as ndvi
+FROM red_nir_tiles
+```
+
+However, suppose we want to compute something a bit more involved, such as the
+EVI2 formula, as described in the [_MODIS VI Users Guide_][MODIS]:
+
+<!-- \text{EVI2} = 2.5 \frac{\text{NIR} - \text{Red}}{\text{NIR} + 2.4 \, \text{Red} + 1} -->
+
+![EVI2](evi2.png)
+
+To do so we must make use of 
+
+```sql
+CREATE TEMPORARY VIEW evi2 AS
+SELECT rf_localMultiplyScalar(
+  rf_localDivide(
+    rf_localSubtract(nir, red),
+    rf_localAddScalar(
+      rf_localAdd(nir, rf_localMultiplyScalar(red, 2.4)), 
+      1.0
+    )
+  ), 2.5
+) as EVI2
+FROM red_nir_tiles
+```
+
 
 
 
 ## Learning More
+
+In-depth and more sophisticated examples, including clustering and
+classification may be found on the RasterFrames website: rasterframes.io.
 
 * rasterframes.io
 * Jupyter Notebooks
@@ -85,3 +161,4 @@ MODIS catalog data source.
 [PDS]:https://registry.opendata.aws/modis/
 [R]:https://www.rdocumentation.org/packages/base/versions/3.5.1/topics/data.frame
 [Pandas]:https://pandas.pydata.org/
+[NDVI]:https://en.wikipedia.org/wiki/Normalized_difference_vegetation_index
