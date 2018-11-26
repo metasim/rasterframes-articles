@@ -169,17 +169,24 @@ And here's what when get when we plot the mean value:
 
 ![Global Average NDVI 2017](ndvi-2017.png)
 
+(While the curve is interesting, interpreting it is beyond the scope of this article.)
+
 ## Scalability
 
+As stated in the introdution
 This same job was run using multiple cluster sizes. Each custer node was an AWS
-`m4.large` configuration, which is composed of 8 virtual cores, 30.5 GiB RAM,
-and 80GB of storage.
+`m4.large` configuration, which is composed of 4 virtual cores, 8 GB RAM, and 32
+GB HDD.
 
 Nodes | Cores | Memory (GB) | Execution Time (min)
 ----- | ----- | ----------- | --------------------
-2     | 16    | 61          | 53
-8     | 64    | 244         | 22
+4     | 16    | 32          | 27
+6     | 24    | 48          | 18
+8     | 32    | 64          | 12
+12    | 48    | 96          | 9
+16    | 64    | 128         | 8
 
+![Compute Time](compute-time.png)
 
 ## Conclusion
 
