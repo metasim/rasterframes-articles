@@ -1,18 +1,18 @@
 # RasterFrames: Enabling DataFrame-Based Analysis of Big Spatiotemporal Raster Data
 
-_Simeon H.K. Fitch_  
+Simeon H.K. Fitch  
 _VP of R&D_  
 [_Astraea, Inc._ ](https://astraea.earth/)
 
-Human beings have a
-millennia-long history of organizing information in tabular form. Typically, rows
-represent independent events or observations, and columns represent measurements
-from the observations. The forms have evolved, from hand-written agricultural
-records and transaction ledgers, to the advent of spreadsheets on the personal
-computer, and on to the creation of [R Data Frames][R] and [Python
-Pandas][Pandas]. The table-oriented data structure remains a common and
-critical component of organizing data across industries, and is the mental model
-employed by many data scientists across diverse forms of modeling and analysis. 
+Human beings have a millennia-long history of organizing information in tabular
+form. Typically, rows represent independent events or observations, and columns
+represent measurements from the observations. The forms have evolved, from
+hand-written agricultural records and transaction ledgers, to the advent of
+spreadsheets on the personal computer, and on to the creation of the _DataFrame_
+data structure as found in [R Data Frames][R] and [Python Pandas][Pandas]. The
+table-oriented data structure remains a common and critical component of
+organizing data across industries, and is the mental model employed by many data
+scientists across diverse forms of modeling and analysis. 
 
 Today, DataFrames are the _lingua franca_ of data science. The evolution of the
 tabular form has continued with Apache Spark SQL, which brings DataFrames to the
@@ -32,15 +32,16 @@ challenge to the data analysis community. It is _Big Data_ in the truest sense.
 [[Insert stats here]]
 
 RasterFrames provides a DataFrame-centric view over arbitrary EO data, enabling
-spatiotemporal queries, map algebra raster operations, and
-compatibility with the ecosystem of Spark ML algorithms.
+spatiotemporal queries, map algebra raster operations, and compatibility with
+the ecosystem of Spark ML algorithms.
 
 ## Architecture
 
-RasterFrames is not only built on Spark SQL, but also most of the other
-LocationTech projects: [GeoTrellis](https://geotrellis.io/),
-[GeoMesa](https://www.geomesa.org/), [JTS](https://github.com/locationtech/jts),
-and [SFCurve](https://github.com/locationtech/sfcurve).
+RasterFrames takes the Spark SQL DataFrame and extends it to support standard EO
+operations. It does this with the help of several other LocationTech projects:
+[GeoTrellis](https://geotrellis.io/), [GeoMesa](https://www.geomesa.org/),
+[JTS](https://github.com/locationtech/jts), and
+[SFCurve](https://github.com/locationtech/sfcurve).
 
 <img src="rasterframes-locationtech-stack.png" 
     title="Figure 1: LocationTech Stack" width="500px"/>
@@ -70,7 +71,7 @@ evolving [Spatiotemporal Asset Catalog (STAC)][STAC].
 
 The following example will show some of the general operations available in
 RasterFrames. It utilizes the [_MODIS Nadir BRDF-Adjusted Surface Reflectance
-Data Product_][NBAR] from NASA, which is directly available through AWS PDS. The
+Data Product_][NBAR] from NASA, which is available as GeoTIFFs through AWS PDS. The
 example extracts data using the RasterFrames MODIS catalog data source and
 manipulates it via SQL (as noted above, Python, Java, and Scala are also
 options). We will compute the monthly global average of a [vegetation
@@ -78,8 +79,8 @@ index][NDVI] in 2017 and see how it varies over the year.
 
 > **Note**: RasterFrames version 0.8.0-RC1 was used in this example.
 
-The first step is to load the MODIS catalog data source into a table and see
-what it provides:
+The first step is to load the MODIS catalog data source into a table and take a
+look a the schema:
 
 ```sql
 CREATE TEMPORARY VIEW modis USING `aws-pds-modis`;
@@ -97,7 +98,7 @@ DESCRIBE modis;
 
 The `assets` column contains a dictionary mapping band names to URIs holding the
 location of each GeoTIFF. To determine what bands are available in the catalog
-we can execute the following:
+we execute the following:
 
 ```sql
 SELECT DISTINCT explode(map_keys(assets)) as asset_keys
@@ -114,9 +115,10 @@ ORDER BY asset_keys
 -- +-------------+
 ```
 
-The next statement creates a view representing global red and NIR band data
-(arbitrarily) on the 15th of each month in 2017. This will give us 12 global
-coverages from which we will compute our statistics.
+From the data product's user manual we find that `B01` and `B02` assets map to
+the red and NIR bands. From there we create a query reading the 
+red and NIR band data on the (arbitrarily chosen) 15th of each month in 2017. 
+This will give us 12 global coverages from which we will compute our statistics.
 
 ```sql
 CREATE TEMPORARY VIEW red_nir_tiles_monthly_2017 AS
@@ -147,7 +149,7 @@ difference of the Red and NIR bands from a surface reflectance data product.
 Since a normalized difference is such a common operation in EO analysis,
 RasterFrames includes the function `rf_normalizedDifference` to compute it. For
 this example we will just collect the aggregate statistics (via `rf_aggStats`)
-for NDVI on a per-month basis.
+for NDVI on a per-month basis:
 
 ```sql
 SELECT month, ndvi_stats.* FROM (
@@ -181,12 +183,19 @@ Plotting the resultant mean value produces:
 
 (While the curve is interesting, interpreting it is beyond the scope of this article.)
 
+This is but a simple example of what one can do with RasterFrames. In 
+[the documentation][RF] we provide other examples, including supervised and
+unsupervised machine learning.
+
 ## Scalability
 
-As stated in the introduction
-This same job was run using multiple cluster sizes. Each custer node was an AWS
-`m4.large` configuration, which is composed of 4 virtual cores, 8 GB RAM, and 32
-GB HDD.
+As stated in the introduction, a primary benefit of RasterFrames is its ability
+to scale with the application of additional compute hardware. This means that
+not only can we attempt analyses that extend beyond the bounds of a single
+computer, but that we can also trade time for cost. The example above was run 6
+times using different sized Elastic Map Reduce (EMR) clusters on AWS. A modest
+node size (AWS "m4.large") was used, each composed of 4 virtual cores, 8 GB RAM,
+and 32 GB HDD. 
 
 Nodes | Cores | Memory (GB) | Execution Time (min)
 ----- | ----- | ----------- | --------------------
@@ -197,7 +206,11 @@ Nodes | Cores | Memory (GB) | Execution Time (min)
 11    | 44    | 88          | 9
 15    | 60    | 120         | 8
 
-![Compute Time](compute-time.png)
+<img src="compute-time.png" 
+    title="Figure 6: Compute Time vs CPU Cores" width="500px" />
+
+At the time of writing, all 6 jobs cost about the price of a cup of coffee,
+making it very much in the reach of any business user.
 
 ## Conclusion
 
