@@ -2,34 +2,34 @@
 
 _Simeon H.K. Fitch_  
 _VP of R&D_  
-_Astraea, Inc._  
+[_Astraea, Inc._ ](https://astraea.earth/)
 
-DataFrames are the _lingua franca_ of of data science. There's a long,
-millennia-long history of organizing data in tabular form. Typically, rows
+Human beings have a
+millennia-long history of organizing information in tabular form. Typically, rows
 represent independent events or observations, and columns represent measurements
 from the observations. The forms have evolved, from hand-written agricultural
 records and transaction ledgers, to the advent of spreadsheets on the personal
 computer, and on to the creation of [R Data Frames][R] and [Python
-Pandas][Pandas]. This table-oriented data structure remains a common and
+Pandas][Pandas]. The table-oriented data structure remains a common and
 critical component of organizing data across industries, and is the mental model
 employed by many data scientists across diverse forms of modeling and analysis. 
 
-The evolution of the tabular form continues in the introduction of Apache Spark
+Today, DataFrames are the _lingua franca_ of data science. The evolution of the tabular form has continued with Apache Spark
 SQL, which brings DataFrames to the big data distributed compute space. Through
 several novel innovations, Spark SQL enables interactive and batch-oriented
 cluster computing without having to be versed in the highly specialized skills
-in high-performance computing. As suggested by the name, these DataFrames are
+typically required for high-performance computing. As suggested by the name, these DataFrames are
 manipulatable via standard SQL, as well as the more general-purpose programming
 languages Python, R, Java, and Scala.
 
 RasterFrames®, an incubating Eclipse Foundation LocationTech project built on
 Spark SQL, brings together Earth-observing (EO) data analysis, big data
 computing, and DataFrame-based data science. It is necessary because the recent
-explosion of EO data from public & private satellite operators presents both a
-huge opportunity & challenge to the data analysis community. It is Big Data in
-the truest sense. While EO & GIS specialists are accustomed to working with this
-data, it is typically done so at a much less expansive or global perspective.
-RasterFrames makes interactive analysis possible on these large data sets
+explosion of EO data from public and private satellite operators presents both a
+huge opportunity and a huge challenge to the data analysis community. It is Big Data in
+the truest sense. While EO and GIS specialists are accustomed to working with this
+data, they typically approach problems of interest from a much less expansive, less global perspective.
+RasterFrames makes interactive analysis on these large data sets possible
 without sacrificing accessibility.
 
 ## Architecture
@@ -37,7 +37,7 @@ without sacrificing accessibility.
 RasterFrames is not only built on Spark SQL, but also most of the other
 LocationTech projects: [GeoTrellis](https://geotrellis.io/),
 [GeoMesa](https://www.geomesa.org/), [JTS](https://github.com/locationtech/jts),
-& [SFCurve](https://github.com/locationtech/sfcurve).
+and [SFCurve](https://github.com/locationtech/sfcurve).
 
 ![LocationTech Stack](rasterframes-locationtech-stack.png)
 
@@ -54,7 +54,7 @@ representing the acquisition time.
 Raster data can be read from a number of sources. Through the flexible Spark SQL
 DataSource API, RasterFrames can be constructed from collections of (preferably
 Cloud Optimized) GeoTIFFs, GeoTrellis Layers, and from an experimental catalog
-of Landsat 8 and MODIS data sets on AWS PDS. We are also experimenting with
+of Landsat 8 and MODIS data sets on the [Amazon Web Services (AWS) Public Data Set (PDS)][PDS]. Astraea, Inc. is also experimenting with
 support for the evolving [Spatiotemporal Asset Catalog (STAC)][STAC].
 
 ![RasterFrames data sources](rasterframes-data-sources.png)
@@ -62,16 +62,16 @@ support for the evolving [Spatiotemporal Asset Catalog (STAC)][STAC].
 ## Example
 
 The following example will show some of the general operations available in
-RasterFrames. In it we will be using the [_MODIS Nadir BRDF-Adjusted Surface
-Reflectance Data Product_][NBAR] from NASA, which is directly available in
-[Amazon Web Services (AWS) Public Data Set (PDS)][PDS]. We will be using the
-RasterFrames MODIS catalog data source, and SQL as our language (as noted above,
+RasterFrames. It utilizes the [_MODIS Nadir BRDF-Adjusted Surface
+Reflectance Data Product_][NBAR] from NASA, which is directly available through
+AWS PDS. The example extracts data using the
+RasterFrames MODIS catalog data source and manipulates it via SQL (as noted above,
 Python, Java, and Scala are also options). We will compute the monthly global
-average of a [vegetation index][NDVI] in 2017 and see how it varies.
+average of a [vegetation index][NDVI] in 2017 and see how it varies over the year.
 
 > **Note**: RasterFrames version 0.8.0-RC1 was used in this example.
 
-The first step is to load our MODIS catalog data source into a table and see
+The first step is to load the MODIS catalog data source into a table and see
 what it provides:
 
 ```sql
@@ -88,8 +88,8 @@ DESCRIBE modis;
 -- +----------------+------------------+
 ```
 
-The `assets` column contains a dictionary mapping between band names and a URI
-pointing to the GeoTIFF. To determine what bands are available in catalog we can
+The `assets` column contains a dictionary mapping band names to URIs
+holding the location of each GeoTIFF. To determine what bands are available in the catalog we can
 execute the following:
 
 ```sql
@@ -107,8 +107,8 @@ ORDER BY asset_keys
 -- +-------------+
 ```
 
-The next statement reads creates a view representing global red and NIR band
-data (arbitrarily) on the 15th of each month in 2017. This will give us 12 
+The next statement creates a view representing global red and NIR band
+data (arbitrarily) on the 15th of each month in 2017. This will give us 12
 
 ```sql
 CREATE TEMPORARY VIEW red_nir_tiles_monthly_2017 AS
@@ -129,15 +129,15 @@ DESCRIBE red_nir_tiles_monthly_2017;
 ```
 
 Computing the [normalized difference vegetation index][NDVI] (NDVI) is a very
-common operation in EO analysis, and is composed simply as the normalized
+common operation in EO analysis, and is calculated simply as the normalized
 difference of the Red and NIR bands from a surface reflectance data product.
 
 <!-- \text{NDVI} = \frac{\text{NIR} - \text{Red}}{\text{NIR} + \text{Red}} -->
 ![NDVI](ndvi.png)
 
-Since a  normalized difference is a such common operation in EO analysis,
-RasterFrames includes the function `rf_normalizedDifference` for computing it.
-For this example we will be just collecting the aggregate statistics (via
+Since a normalized difference is such a common operation in EO analysis,
+RasterFrames includes the function `rf_normalizedDifference` to compute it.
+For this example we will just collect the aggregate statistics (via
 `rf_aggStats`) for NDVI on a per-month basis.
 
 ```sql
@@ -165,7 +165,7 @@ SELECT month, ndvi_stats.* FROM (
 -- +-----+---------+-----------+----+---+-------------------+-------------------+
 ```
 
-And here's what when get when we plot the mean value:
+Plotting the resultant mean value produces:
 
 ![Global Average NDVI 2017](ndvi-2017.png)
 
@@ -197,7 +197,7 @@ As we have seen....
 ## Learning More
 
 In-depth and more sophisticated examples, including clustering and
-classification may be found on the RasterFrames website: rasterframes.io.
+classification, may be found on the RasterFrames website: rasterframes.io.
 
 * [rasterframes.io](http://rasterframes.io)
 * [GitHub](https://github.com/locationtech/rasterframes)
