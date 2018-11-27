@@ -10,36 +10,41 @@ represent independent events or observations, and columns represent measurements
 from the observations. The forms have evolved, from hand-written agricultural
 records and transaction ledgers, to the advent of spreadsheets on the personal
 computer, and on to the creation of [R Data Frames][R] and [Python
-Pandas][Pandas]. This table-oriented data structure remains a common and
-critical component of organizing data across industries, and is the mental model
-employed by many data scientists across diverse forms of modeling and analysis. 
+Pandas][Pandas] in the era of data science. This table-oriented data structure
+remains a common and critical component of organizing data, across industries,
+and is the mental model employed by many analysts and data scientists across
+diverse forms of modeling and analysis. 
 
-The evolution of the tabular form continues in the introduction of Apache Spark
-SQL, which brings DataFrames to the big data distributed compute space. Through
-several novel innovations, Spark SQL enables interactive and batch-oriented
-cluster computing without having to be versed in the highly specialized skills
-in high-performance computing. As suggested by the name, these DataFrames are
-manipulatable via standard SQL, as well as the more general-purpose programming
-languages Python, R, Java, and Scala.
+The evolution of this data structure continues in the introduction of Apache
+Spark SQL, which brings DataFrames to the big data distributed compute space.
+Through several novel innovations, Spark SQL enables interactive and
+batch-oriented cluster computing, using  without having to be versed in the
+highly specialized skills in high-performance computing. As suggested by the
+name, these DataFrames are manipulatable via standard SQL, as well as the more
+general-purpose programming languages Python, R, Java, and Scala.
 
-RasterFrames®, an incubating Eclipse Foundation LocationTech project built on
-Spark SQL, brings together Earth-observing (EO) data analysis, big data
-computing, and DataFrame-based data science. It is necessary because the recent
-explosion of EO data from public & private satellite operators presents both a
-huge opportunity & challenge to the data analysis community. It is Big Data in
-the truest sense. While EO & GIS specialists are accustomed to working with this
-data, it is typically done so at a much less expansive or global perspective.
-RasterFrames makes interactive analysis possible on these large data sets
-without sacrificing accessibility.
+RasterFrames®, an incubating Eclipse Foundation LocationTech project, brings
+together Earth-observing (EO) data analysis, big data computing, and
+DataFrame-based data science. The recent explosion of EO data from public &
+private satellite operators presents both a huge opportunity as well as a
+challenge to the data analysis community. It is _Big Data_ in the truest sense. 
+
+[[Insert stats here]]
+
+RasterFrames provides a DataFrame-centric view over arbitrary EO data, enabling
+spatiotemporal queries, map algebra raster operations, and
+compatibility with the ecosystem of Spark ML algorithms.
 
 ## Architecture
 
-RasterFrames is not only built on Spark SQL, but also most of the other
-LocationTech projects: [GeoTrellis](https://geotrellis.io/),
-[GeoMesa](https://www.geomesa.org/), [JTS](https://github.com/locationtech/jts),
-& [SFCurve](https://github.com/locationtech/sfcurve).
+RasterFrames is built upon the strong distributed DataFrames foundation provided
+by Spark SQL, as well as several other Eclipse Foundation LocationTech projects:
+[GeoTrellis](https://geotrellis.io/), [GeoMesa](https://www.geomesa.org/),
+[JTS](https://github.com/locationtech/jts), &
+[SFCurve](https://github.com/locationtech/sfcurve).
 
-![LocationTech Stack](rasterframes-locationtech-stack.png)
+<img src="rasterframes-locationtech-stack.png" 
+    title="Figure 1: LocationTech Stack" width="500px"/>
 
 RasterFrames introduces a new native data type called `tile` to Spark SQL. A
 "RasterFrame" is any DataFrame with one or more columns of type `tile`. A `tile`
@@ -49,7 +54,8 @@ column typically represents a single frequency band of sensor data, such as
 the data, the map projection of that geometry (`crs`), and a `timestamp` column
 representing the acquisition time.
 
-![RasterFrame Anatomy](rasterframe-anatomy.png)
+<img src="rasterframe-anatomy.png" 
+    title="Figure 2: RasterFrame Anatomy" width="600px"/>
 
 Raster data can be read from a number of sources. Through the flexible Spark SQL
 DataSource API, RasterFrames can be constructed from collections of (preferably
@@ -57,7 +63,8 @@ Cloud Optimized) GeoTIFFs, GeoTrellis Layers, and from an experimental catalog
 of Landsat 8 and MODIS data sets on AWS PDS. We are also experimenting with
 support for the evolving [Spatiotemporal Asset Catalog (STAC)][STAC].
 
-![RasterFrames data sources](rasterframes-data-sources.png)
+<img src="rasterframes-data-sources.png" 
+    title="Figure 3: RasterFrame Data Sources" width="400px"/>
 
 ## Example
 
@@ -133,7 +140,8 @@ common operation in EO analysis, and is composed simply as the normalized
 difference of the Red and NIR bands from a surface reflectance data product.
 
 <!-- \text{NDVI} = \frac{\text{NIR} - \text{Red}}{\text{NIR} + \text{Red}} -->
-![NDVI](ndvi.png)
+
+<img src="ndvi.png" title="Figure 4: NDVI" width="200px" />
 
 Since a  normalized difference is a such common operation in EO analysis,
 RasterFrames includes the function `rf_normalizedDifference` for computing it.
@@ -167,7 +175,8 @@ SELECT month, ndvi_stats.* FROM (
 
 And here's what when get when we plot the mean value:
 
-![Global Average NDVI 2017](ndvi-2017.png)
+<img src="ndvi-2017.png" 
+    title="Figure 5: Global Average NDVI 2017" width="500px"/>
 
 (While the curve is interesting, interpreting it is beyond the scope of this article.)
 
@@ -180,18 +189,18 @@ GB HDD.
 
 Nodes | Cores | Memory (GB) | Execution Time (min)
 ----- | ----- | ----------- | --------------------
-4     | 16    | 32          | 27
-6     | 24    | 48          | 18
-8     | 32    | 64          | 12
-12    | 48    | 96          | 9
-16    | 64    | 128         | 8
+1     | 4     | 8           |
+3     | 12    | 24          | 27
+5     | 20    | 40          | 18
+7     | 28    | 56          | 12
+11    | 44    | 88          | 9
+15    | 60    | 120         | 8
 
 ![Compute Time](compute-time.png)
 
 ## Conclusion
 
 As we have seen....
-
 
 
 ## Learning More
