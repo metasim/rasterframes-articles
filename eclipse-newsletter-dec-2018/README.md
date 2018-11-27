@@ -135,7 +135,7 @@ difference of the Red and NIR bands from a surface reflectance data product.
 <!-- \text{NDVI} = \frac{\text{NIR} - \text{Red}}{\text{NIR} + \text{Red}} -->
 ![NDVI](ndvi.png)
 
-Since a normalized difference is a such common operation in EO analysis,
+Since a normalized difference is such a common operation in EO analysis,
 RasterFrames includes the function `rf_normalizedDifference` to compute it.
 For this example we will just collect the aggregate statistics (via
 `rf_aggStats`) for NDVI on a per-month basis.
