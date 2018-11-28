@@ -210,11 +210,11 @@ Nodes | Cores | Memory (GB) | Execution Time (min)
     title="Figure 6: Compute Time vs CPU Cores" width="500px" />
 
 At the time of writing, all 6 jobs cost about the price of a cup of coffee,
-making it very much in the reach of any business user.
+making it very much within the reach of any business user.
 
 ## Conclusion
 
-As we have seen....
+As more and more data becomes available in every industry, solutions have emerged to connect the traditional, tabular model of data to computational engines powerful enough to process it at volume. DataFrames and Spark SQL are general purpose tools that provide scalable data analysis through distributed computing. Data science and machine learning are consistently becoming more mainstream, and there is an opportunity for specialized technologies to further abstract common constructs within each problem space. For the EO realm, RasterFrames adds another layer of abstraction that can empower a broader set of users to process EO data in an intuitive way. By combining the technological advancements of its fellow LocationTech projects with DataFrames and Spark SQL, RasterFrames unlocks more natural, scalable machine learning for data analysts and scientists operating under a flood of new data while attempting to address global issues such as deforestation, climate change, and food shortages. As an open-source project and a proud member of Eclipse LocationTech, RasterFrames strives to have a positive global impact.
 
 ## Learning More
 
