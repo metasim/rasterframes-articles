@@ -4,6 +4,10 @@ Simeon H.K. Fitch
 _VP of R&D_  
 [_Astraea, Inc._ ](https://astraea.earth/)
 
+D. Benjamin Guseman
+_Senior Software Engineer_
+[_Astraea, Inc._ ](https://astraea.earth/)
+
 Human beings have a millennia-long history of organizing information in tabular
 form. Typically, rows represent independent events or observations, and columns
 represent measurements from the observations. The forms have evolved, from
@@ -27,13 +31,27 @@ RasterFrames®, an incubating Eclipse Foundation LocationTech project, brings
 together Earth-observing (EO) data analysis, big data computing, and
 DataFrame-based data science. The recent explosion of EO data from public and
 private satellite operators presents both a huge opportunity as well as a
-challenge to the data analysis community. It is _Big Data_ in the truest sense. 
+challenge to the data analysis community. It is _Big Data_ in the truest sense,
+and its footprint is rapidly getting bigger. According to a World Bank document
+on assets for post-disaster situation awareness[^1]:
 
-[[Insert stats here]]
+> Of the 1,738 operational satellites currently orbiting the earth (as of
+> 9/[20]17), 596 are earth observation satellites and 477 of these are
+> non-military assets (ie available to civil society including commercial
+> entities and governments for earth observation, according to the Union of
+> Concerned Scientists). This number is expected to increase significantly over
+> the next ten years. The 200 or so planned remote sensing satellites have a
+> value of over 27 billion USD (Forecast International). This estimate does not
+> include the burgeoning fleets of smallsats as well as micro, nano and even
+> smaller satellites... All this enthusiasm has, not unexpectedly, led
+> to a veritable fire-hose of remotely sensed data which is becoming difficult
+> to navigate even for seasoned experts.
 
 RasterFrames provides a DataFrame-centric view over arbitrary EO data, enabling
 spatiotemporal queries, map algebra raster operations, and compatibility with
-the ecosystem of Spark ML algorithms.
+the ecosystem of Spark ML algorithms. By using DataFrames as the core cognitive and
+compute data model, it is able to deliver these features in a form that is
+accessible to general analysts while handling the rapidly growing data footprint.
 
 ## Architecture
 
@@ -190,7 +208,7 @@ unsupervised machine learning.
 ## Scalability
 
 As stated in the introduction, a primary benefit of RasterFrames is its ability
-to scale with the application of additional compute hardware. This means that
+to scale with additional compute hardware. This means that
 not only can we attempt analyses that extend beyond the bounds of a single
 computer, but that we can also trade time for cost. The example above was run 6
 times using different sized Elastic Map Reduce (EMR) clusters on AWS. A modest
@@ -214,7 +232,21 @@ making it very much within the reach of any business user.
 
 ## Conclusion
 
-As more and more data becomes available in every industry, solutions have emerged to connect the traditional, tabular model of data to computational engines powerful enough to process it at volume. DataFrames and Spark SQL are general purpose tools that provide scalable data analysis through distributed computing. Data science and machine learning are consistently becoming more mainstream, and there is an opportunity for specialized technologies to further abstract common constructs within each problem space. For the EO realm, RasterFrames adds another layer of abstraction that can empower a broader set of users to process EO data in an intuitive way. By combining the technological advancements of its fellow LocationTech projects with DataFrames and Spark SQL, RasterFrames unlocks more natural, scalable machine learning for data analysts and scientists operating under a flood of new data while attempting to address global issues such as deforestation, climate change, and food shortages. As an open-source project and a proud member of Eclipse LocationTech, RasterFrames strives to have a positive global impact.
+As more and more data becomes available in every industry, solutions have
+emerged to connect the traditional, tabular model of data to computational
+engines powerful enough to process it at volume. DataFrames and Spark SQL are
+general purpose tools that provide scalable data analysis through distributed
+computing. Data science and machine learning are consistently becoming more
+mainstream, and there is an opportunity for specialized technologies to further
+abstract common constructs within each problem space. For the EO realm,
+RasterFrames adds another layer of abstraction that can empower a broader set of
+users to process EO data in an intuitive way. By combining the technological
+advancements of its fellow LocationTech projects with DataFrames and Spark SQL,
+RasterFrames unlocks more natural, scalable machine learning for data analysts
+and scientists operating under a flood of new data while attempting to address
+global issues such as deforestation, climate change, and food shortages. As an
+open-source project and a proud member of Eclipse LocationTech, RasterFrames
+strives to have a positive global impact.
 
 ## Learning More
 
@@ -234,3 +266,6 @@ classification, may be found on the RasterFrames website: [rasterframes.io][RF].
 [R]:https://www.rdocumentation.org/packages/base/versions/3.5.1/topics/data.frame
 [Pandas]:https://pandas.pydata.org/
 [NDVI]:https://en.wikipedia.org/wiki/Normalized_difference_vegetation_index
+
+[^1]: _Demystifying Satellite Assets for Post-Disaster Situation Awareness_.
+World Bank via OpenDRI.org. Accessed November 28, 2018. https://docs.google.com/document/d/11bIw5HcEiZy8SKli6ZFQC2chVEiiIJ-f0o6btA4LU48
