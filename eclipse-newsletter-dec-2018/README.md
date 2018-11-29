@@ -4,8 +4,8 @@ Simeon H.K. Fitch
 _VP of R&D_  
 [_Astraea, Inc._ ](https://astraea.earth/)
 
-D. Benjamin Guseman
-_Senior Software Engineer_
+D. Benjamin Guseman  
+_Senior Software Engineer_  
 [_Astraea, Inc._ ](https://astraea.earth/)
 
 Human beings have a millennia-long history of organizing information in tabular
