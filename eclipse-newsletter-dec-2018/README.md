@@ -64,36 +64,43 @@ operations. It does this with the help of several other LocationTech projects:
 <img src="rasterframes-locationtech-stack.png" 
     title="Figure 1: LocationTech Stack" width="500px"/>
 
-RasterFrames introduces a new native data type called `tile` to Spark SQL. A
-"RasterFrame" is any DataFrame with one or more columns of type `tile`. A `tile`
-column typically represents a single frequency band of sensor data, such as
-"blue" or "near infrared", discretized into regular-sized chunks. Along with
-`tile` columns there is typically a `geometry` column specifying the location of
-the data, the map projection of that geometry (`crs`), and a `timestamp` column
-representing the acquisition time.
+RasterFrames introduces a new native data type called `tile` to Spark SQL. Each
+`tile` cell contains a 2-D matrix of "cell" (pixel) values, along with
+information on how to numerically interpret those cells. A "RasterFrame" is a
+Spark DataFrame with one or more columns of type `tile`. A `tile` column
+typically represents a single frequency band of sensor data, such as "blue" or
+"near infrared", discretized into regular-sized chunks, but can also be quality
+assurance information, land classification assignments, or any other discretized
+geo-spatiotemporal data. It also includes support for working with vector data,
+such as [GeoJSON][GeoJSON]. Along with `tile` columns there is typically a
+`geometry` column (bounds or extent/envelope) specifying the location of the
+data, the map projection of that geometry (`crs`), and a `timestamp` column
+representing the acquisition time. These columns can all be used in the `WHERE`
+clause when querying a catalog of imagery.
 
 <img src="rasterframe-anatomy.png" 
     title="Figure 2: RasterFrame Anatomy" width="600px"/>
 
 Raster data can be read from a number of sources. Through the flexible Spark SQL
 DataSource API, RasterFrames can be constructed from collections of (preferably
-Cloud Optimized) GeoTIFFs, GeoTrellis Layers, and from an experimental catalog
-of Landsat 8 and MODIS data sets on the [Amazon Web Services (AWS) Public Data
-Set (PDS)][PDS]. Astraea, Inc. is also experimenting with support for the
-evolving [Spatiotemporal Asset Catalog (STAC)][STAC].
+Cloud Optimized) GeoTIFFs, [GeoTrellis Layers][GTLayer], and from an
+experimental catalog of Landsat 8 and MODIS data sets on the [Amazon Web
+Services (AWS) Public Data Set (PDS)][PDS]. We are also experimenting with
+support for the evolving [Spatiotemporal Asset Catalog (STAC)][STAC]
+specification.
 
 <img src="rasterframes-data-sources.png" 
     title="Figure 3: RasterFrame Data Sources" width="400px"/>
 
-## Example
+## Using RasterFrames
 
-The following example will show some of the general operations available in
-RasterFrames. It utilizes the [_MODIS Nadir BRDF-Adjusted Surface Reflectance
-Data Product_][NBAR] from NASA, which is available as GeoTIFFs through AWS PDS. The
-example extracts data using the RasterFrames MODIS catalog data source and
-manipulates it via SQL (as noted above, Python, Java, and Scala are also
-options). We will compute the monthly global average of a [vegetation
-index][NDVI] in 2017 and see how it varies over the year.
+The following example shows some of the general operations available in
+RasterFrames. As an imagery target we will use the [_MODIS Nadir BRDF-Adjusted
+Surface Reflectance Data Product_][NBAR] from NASA, which is available as
+GeoTIFFs through AWS PDS. The example extracts data using the RasterFrames MODIS
+catalog data source and manipulates it via SQL (as noted above, Python, Java,
+and Scala are also options). We will compute the monthly global average of a
+[vegetation index][NDVI] in 2017 and see how it varies over the year.
 
 > **Note**: RasterFrames version 0.8.0-RC1 was used in this example.
 
@@ -133,10 +140,10 @@ ORDER BY asset_keys
 -- +-------------+
 ```
 
-From the data product's user manual we find that `B01` and `B02` assets map to
-the red and NIR bands. From there we create a query reading the 
-red and NIR band data on the (arbitrarily chosen) 15th of each month in 2017. 
-This will give us 12 global coverages from which we will compute our statistics.
+From the [data product's user manual][MODIS] we find that `B01` and `B02` assets
+map to the red and NIR bands. From there we create a query reading the red and
+NIR band data on the (arbitrarily chosen) 15th of each month in 2017. This will
+give us 12 global coverages from which we will compute our statistics.
 
 ```sql
 CREATE TEMPORARY VIEW red_nir_tiles_monthly_2017 AS
@@ -158,7 +165,7 @@ DESCRIBE red_nir_tiles_monthly_2017;
 
 Computing the [normalized difference vegetation index][NDVI] (NDVI) is a very
 common operation in EO analysis, and is calculated simply as the normalized
-difference of the Red and NIR bands from a surface reflectance data product.
+difference of the Red and NIR bands from a surface reflectance data product:
 
 <!-- \text{NDVI} = \frac{\text{NIR} - \text{Red}}{\text{NIR} + \text{Red}} -->
 
@@ -166,8 +173,8 @@ difference of the Red and NIR bands from a surface reflectance data product.
 
 Since a normalized difference is such a common operation in EO analysis,
 RasterFrames includes the function `rf_normalizedDifference` to compute it. For
-this example we will just collect the aggregate statistics (via `rf_aggStats`)
-for NDVI on a per-month basis:
+this example we first compute NDVI and then collect the aggregate statistics
+(via `rf_aggStats`) on a per-month basis:
 
 ```sql
 SELECT month, ndvi_stats.* FROM (
@@ -194,7 +201,7 @@ SELECT month, ndvi_stats.* FROM (
 -- +-----+---------+-----------+----+---+-------------------+-------------------+
 ```
 
-Plotting the resultant mean value produces:
+Plotting the resultant mean value and standard deviation bands shows the following:
 
 <img src="ndvi-2017.png" 
     title="Figure 5: Global Average NDVI 2017" width="500px"/>
@@ -203,14 +210,15 @@ Plotting the resultant mean value produces:
 
 This is but a simple example of what one can do with RasterFrames. In 
 [the documentation][RF] we provide other examples, including supervised and
-unsupervised machine learning.
+unsupervised machine learning, as well as options for rendering results as
+new imagery layers.
 
 ## Scalability
 
 As stated in the introduction, a primary benefit of RasterFrames is its ability
 to scale with additional compute hardware. This means that
 not only can we attempt analyses that extend beyond the bounds of a single
-computer, but that we can also trade time for cost. The example above was run 6
+computer, but that we can also trade money for time. The example above was run 6
 times using different sized Elastic Map Reduce (EMR) clusters on AWS. A modest
 node size (AWS "m4.large") was used, each composed of 4 virtual cores, 8 GB RAM,
 and 32 GB HDD. 
@@ -227,7 +235,12 @@ Nodes | Cores | Memory (GB) | Execution Time (min)
 <img src="compute-time.png" 
     title="Figure 6: Compute Time vs CPU Cores" width="500px" />
 
-At the time of writing, all 6 jobs cost about the price of a cup of coffee,
+In this particular job we achieved significant scalability up until about 11
+nodes. Cursory analysis indicated that the limiting factor in this analysis was
+network saturation. Analyses with greater computational requirements (say,
+K-means clustering), would be better able to make use of even more hardware.
+
+At the time of writing, all 6 jobs cost less than the price of a cup of coffee,
 making it very much within the reach of any business user.
 
 ## Conclusion
@@ -250,13 +263,15 @@ strives to have a positive global impact.
 
 ## Learning More
 
-In-depth and more sophisticated examples, including clustering and
-classification, may be found on the RasterFrames website: [rasterframes.io][RF].
+To try out RasterFrames we recommend starting out with the [preconfigured Docker
+image][Jupyter] containing Jupyter Notebooks. A library of examples in both Python
+and Scala are included. Additional examples and details on doing development
+with RasterFrames on the RasterFrames website [rasterframes.io][RF].
 
-* [rasterframes.io][RF]
-* [GitHub](https://github.com/locationtech/rasterframes)
-* [Jupyter Notebooks](https://github.com/locationtech/rasterframes/tree/develop/deployment)
-* [Gitter](https://gitter.im/s22s/raster-frames)
+* Documentation: [rasterframes.io][RF]
+* Source Code: [GitHub](https://github.com/locationtech/rasterframes)
+* Community Chat: [Gitter](https://gitter.im/s22s/raster-frames)
+* Jupyter Details: [Jupyter Notebooks](https://github.com/locationtech/rasterframes/tree/develop/deployment)
 
 [RF]:http://rasterframes.io
 [MODIS]:https://vip.arizona.edu/documents/MODIS/MODIS_VI_UsersGuide_June_2015_C6.pdf
@@ -266,6 +281,9 @@ classification, may be found on the RasterFrames website: [rasterframes.io][RF].
 [R]:https://www.rdocumentation.org/packages/base/versions/3.5.1/topics/data.frame
 [Pandas]:https://pandas.pydata.org/
 [NDVI]:https://en.wikipedia.org/wiki/Normalized_difference_vegetation_index
+[GeoJSON]:https://en.wikipedia.org/wiki/GeoJSON
+[GTLayer]:https://geotrellis.readthedocs.io/en/latest/guide/core-concepts.html#layouts-and-tile-layers
+[Jupyter]:https://hub.docker.com/r/s22s/rasterframes-notebooks/
 
-[^1]: _Demystifying Satellite Assets for Post-Disaster Situation Awareness_.
-World Bank via OpenDRI.org. Accessed November 28, 2018. https://docs.google.com/document/d/11bIw5HcEiZy8SKli6ZFQC2chVEiiIJ-f0o6btA4LU48
+[^1]: [_Demystifying Satellite Assets for Post-Disaster Situation Awareness_](https://docs.google.com/document/d/11bIw5HcEiZy8SKli6ZFQC2chVEiiIJ-f0o6btA4LU48).
+World Bank via [OpenDRI.org](https://opendri.org/resource/demystifying-satellite-assets-for-post-disaster-situation-awareness/). Accessed November 28, 2018. 
