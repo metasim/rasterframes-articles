@@ -59,14 +59,13 @@ RasterFrames takes the Spark SQL DataFrame and extends it to support standard EO
 operations. It does this with the help of several other LocationTech projects:
 [GeoTrellis](https://geotrellis.io/), [GeoMesa](https://www.geomesa.org/),
 [JTS](https://github.com/locationtech/jts), and
-[SFCurve](https://github.com/locationtech/sfcurve).
+[SFCurve](https://github.com/locationtech/sfcurve) (see Figure 1).
 
-<img src="rasterframes-locationtech-stack.png" 
-    title="Figure 1: LocationTech Stack" width="500px"/>
+![LocationTech Stack](rasterframes-locationtech-stack.png)
 
 RasterFrames introduces a new native data type called `tile` to Spark SQL. Each
 `tile` cell contains a 2-D matrix of "cell" (pixel) values, along with
-information on how to numerically interpret those cells. A "RasterFrame" is a
+information on how to numerically interpret those cells. As showin in Figure 2, a "RasterFrame" is a
 Spark DataFrame with one or more columns of type `tile`. A `tile` column
 typically represents a single frequency band of sensor data, such as "blue" or
 "near infrared", discretized into regular-sized chunks, but can also be quality
@@ -78,8 +77,7 @@ data, the map projection of that geometry (`crs`), and a `timestamp` column
 representing the acquisition time. These columns can all be used in the `WHERE`
 clause when querying a catalog of imagery.
 
-<img src="rasterframe-anatomy.png" 
-    title="Figure 2: RasterFrame Anatomy" width="600px"/>
+![RasterFrame Anatomy](rasterframe-anatomy.png)
 
 Raster data can be read from a number of sources. Through the flexible Spark SQL
 DataSource API, RasterFrames can be constructed from collections of (preferably
@@ -87,10 +85,9 @@ Cloud Optimized) GeoTIFFs, [GeoTrellis Layers][GTLayer], and from an
 experimental catalog of Landsat 8 and MODIS data sets on the [Amazon Web
 Services (AWS) Public Data Set (PDS)][PDS]. We are also experimenting with
 support for the evolving [Spatiotemporal Asset Catalog (STAC)][STAC]
-specification.
+specification (see Figure 3 below).
 
-<img src="rasterframes-data-sources.png" 
-    title="Figure 3: RasterFrame Data Sources" width="400px"/>
+![RasterFrame Data Sources](rasterframes-data-sources.png)
 
 ## Using RasterFrames
 
@@ -126,6 +123,7 @@ location of each GeoTIFF. To determine what bands are available in the catalog
 we execute the following:
 
 ```sql
+
 SELECT DISTINCT explode(map_keys(assets)) as asset_keys
 FROM modis
 ORDER BY asset_keys
@@ -167,9 +165,9 @@ Computing the [normalized difference vegetation index][NDVI] (NDVI) is a very
 common operation in EO analysis, and is calculated simply as the normalized
 difference of the Red and NIR bands from a surface reflectance data product:
 
-<!-- \text{NDVI} = \frac{\text{NIR} - \text{Red}}{\text{NIR} + \text{Red}} -->
+$$\text{NDVI} = \frac{\text{NIR} - \text{Red}}{\text{NIR} + \text{Red}}$$\
 
-<img src="ndvi.png" title="Figure 4: NDVI" width="200px" />
+<!-- ![NDVI](ndvi.png) -->
 
 Since a normalized difference is such a common operation in EO analysis,
 RasterFrames includes the function `rf_normalizedDifference` to compute it. For
@@ -201,10 +199,9 @@ SELECT month, ndvi_stats.* FROM (
 -- +-----+---------+-----------+----+---+-------------------+-------------------+
 ```
 
-Plotting the resultant mean value and standard deviation bands shows the following:
+Figure 4 shows the  resultant mean value and standard deviation bands.
 
-<img src="ndvi-2017.png" 
-    title="Figure 5: Global Average NDVI 2017" width="500px"/>
+![Global Average NDVI 2017](ndvi-2017.png)
 
 (While the curve is interesting, interpreting it is beyond the scope of this article.)
 
@@ -232,8 +229,7 @@ Nodes | Cores | Memory (GB) | Execution Time (min)
 11    | 44    | 88          | 9
 15    | 60    | 120         | 8
 
-<img src="compute-time.png" 
-    title="Figure 6: Compute Time vs CPU Cores" width="500px" />
+![Compute Time vs CPU Cores](compute-time.png)
 
 In this particular job we achieved significant scalability up until about 11
 nodes. Cursory analysis indicated that the limiting factor in this analysis was
